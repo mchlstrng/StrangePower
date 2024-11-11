@@ -1,0 +1,28 @@
+﻿@page "/"
+@using StrangePower.Services
+
+<PageTitle>Home</PageTitle>
+
+<h1 class="display-4">Hello, world!</h1>
+
+@inject ITokenService TokenService
+
+<div class="container mt-4">
+    <p class="lead">Welcome to your new app.</p>
+
+    <div class="row">
+        <div class="col-md-12">
+            <p class="lead">Token:</p>
+            <p class="lead" style="word-wrap: break-word;">@token</p>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string token = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        token = await TokenService.GetAccessTokenAsync();
+    }
+}

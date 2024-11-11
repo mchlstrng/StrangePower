@@ -1,0 +1,64 @@
+﻿@page "/settings"
+@using StrangePower.Services
+@using StrangePower.Data
+<h3>Settings</h3>
+
+<button @onclick="LoadMeteringPoints">Load Metering Points</button>
+
+@if (meteringPoints != null)
+{
+    <div>
+        <label for="meteringPointsDropdown">Select Metering Point:</label>
+        <select id="meteringPointsDropdown" @bind="selectedMeteringPointId">
+            <option value="">Select Metering Point</option>
+            @foreach (var point in meteringPoints)
+            {
+                <option value="@point.MeteringpointId">@point.MeteringpointId (@point.Address)</option>
+            }
+        </select>
+        <button @onclick="SaveSelectedMeteringPoint">Save</button>
+    </div>
+
+    <h4>Currently Active Metering Point</h4>
+    <p>@activeMeteringPoint?.MeteringpointId (@activeMeteringPoint?.Address)</p>
+}
+
+@code {
+    private List<MeteringPoint> meteringPoints = new List<MeteringPoint>();
+    private string? selectedMeteringPointId;
+    private MeteringPoint? activeMeteringPoint;
+
+    [Inject]
+    public IMeteringPointsService? MeteringPointsService { get; set; }
+
+    [Inject]
+    public IMeteringPointRepository? MeteringPointRepository { get; set; }
+
+    private async Task LoadMeteringPoints()
+    {
+        meteringPoints = await MeteringPointsService.GetMeteringPointsAsync();
+        activeMeteringPoint = await MeteringPointRepository.GetActiveMeteringPointAsync();
+        if (activeMeteringPoint != null)
+        {
+            selectedMeteringPointId = activeMeteringPoint.MeteringpointId;
+        }
+    }
+
+    private async Task SaveSelectedMeteringPoint()
+    {
+        if (!string.IsNullOrEmpty(selectedMeteringPointId))
+        {
+            var newActiveMeteringPoint = meteringPoints.FirstOrDefault(mp => mp.MeteringpointId == selectedMeteringPointId);
+            if (newActiveMeteringPoint != null)
+            {
+                await MeteringPointRepository.SetActiveMeteringPointAsync(newActiveMeteringPoint);
+                activeMeteringPoint = newActiveMeteringPoint;
+            }
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMeteringPoints();
+    }
+}
